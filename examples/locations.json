@@ -1,0 +1,83 @@
+[
+  {
+    "room_name": "Dad Office",
+    "places": [
+      "Dad chair",
+      "Bookshelf",
+      "Dragon Egg"
+    ]
+  },
+  {
+    "room_name": "Mom Office",
+    "places": [
+      "Mom chair",
+      "Mom keyboard",
+      "Game closet"
+    ]
+  },
+  {
+    "room_name": "Kids Bed",
+    "places": [
+      "Yarn cubby",
+      "On Desk",
+      "On Dresser",
+      "Bookshelf",
+      "Bed"
+    ]
+  },
+  {
+    "room_name": "Kids Closet",
+    "places": [
+      "On dresser",
+      "Toy box"
+    ]
+  },
+  {
+    "room_name": "Kids Bathroom",
+    "places": [
+      "Toothpaste drawer",
+      "Bathtub"
+    ]
+  },
+  {
+    "room_name": "Master Bed",
+    "places": [
+      "On dad nightstand",
+      "On mom nightstand",
+      "On tall dresser"
+    ]
+  },
+  {
+    "room_name": "Master Bath",
+    "places": [
+      "Dad sink counter",
+      "Mom sink counter",
+      "Bathtub"
+    ]
+  },
+  {
+    "room_name": "Kitchen",
+    "places": [
+      "Counter",
+      "Fruit basket",
+      "Table",
+      "Napkin holder"
+    ]
+  },
+  {
+    "room_name": "Living",
+    "places": [
+      "End table basket",
+      "End table drawer",
+      "TV stand"
+    ]
+  },
+  {
+    "room_name": "Laundry",
+    "places": [
+      "Paper towel roll",
+      "Under Dryer",
+      "Sink"
+    ]
+  }
+]

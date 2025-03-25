@@ -1,0 +1,110 @@
+[project]
+name = "par_treasure_hunt"
+dynamic = [
+    "version",
+]
+description = "PAR Treasure Hunt"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Paul Robello", email = "probello@gmail.com" },
+]
+maintainers = [
+    { name = "Paul Robello", email = "probello@gmail.com" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Environment :: Console",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Other Audience",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Operating System :: POSIX :: Linux",
+    "Typing :: Typed",
+]
+keywords = [
+    "cli",
+    "terminal",
+    "game"
+]
+dependencies = [
+    "asyncio>=3.4.3",
+    "pydantic-core>=2.27.2",
+    "pydantic>=2.10.6",
+    "python-dotenv>=1.0.1",
+    "rich>=13.9.4",
+    "orjson>=3.10.15",
+    "typer>=0.15.2",
+]
+packages = [
+    "src/par_treasure_hunt",
+]
+
+[project.license]
+file = "LICENSE"
+
+[project.urls]
+Homepage = "https://github.com/paulrobello/par_treasure_hunt"
+Documentation = "https://github.com/paulrobello/par_treasure_hunt/blob/main/README.md"
+Repository = "https://github.com/paulrobello/par_treasure_hunt"
+Issues = "https://github.com/paulrobello/par_treasure_hunt/issues"
+Discussions = "https://github.com/paulrobello/par_treasure_hunt/discussions"
+Wiki = "https://github.com/paulrobello/par_treasure_hunt/wiki"
+
+[project.scripts]
+par_treasure_hunt = "par_treasure_hunt.__main__:app"
+
+[build-system]
+requires = [
+    "hatchling",
+]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "build>=1.2.2",
+    "pyright>=1.1.396",
+    "pre-commit>=4.1.0",
+    "ruff>=0.11.0",
+]
+
+[tool.hatch.version]
+path = "src/par_treasure_hunt/__init__.py"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/par_treasure_hunt",
+]
+include = [
+    "py.typed",
+    "**/*.py",
+    "**/*.html",
+    "**/*.gif",
+    "**/*.jpg",
+    "**/*.png",
+    "**/*.md",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/par_treasure_hunt",
+    "LICENSE",
+    "README.md",
+    "pyproject.toml",
+]
+exclude = [
+    "*.pyc",
+    "__pycache__",
+    "*.so",
+    "*.dylib",
+]
