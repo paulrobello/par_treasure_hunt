@@ -76,3 +76,4 @@ __pypackages__/
 **/.terraform
 /locations.json
 /locations_graph.mermaid
+/bean_run.sh

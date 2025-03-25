@@ -25,10 +25,12 @@ def parse_mermaid_graph(file_path: Path) -> dict[str, list[str]]:
         file_path: Path to the Mermaid graph file
 
     Returns:
-        Dict mapping node names to lists of adjacent nodes
+        Dict mapping node labels to lists of adjacent node labels
     """
     # Initialize the adjacency list
     graph: dict[str, list[str]] = defaultdict(list)
+    # Dictionary to store node ID to label mapping
+    node_labels: dict[str, str] = {}
 
     try:
         content = file_path.read_text(encoding="utf-8")
@@ -38,6 +40,18 @@ def parse_mermaid_graph(file_path: Path) -> dict[str, list[str]]:
             match = re.search(r"```mermaid\s*\n(.*?)\n\s*```", content, re.DOTALL)
             if match:
                 content = match.group(1)
+
+        # First pass: Extract node ID to label mappings
+        node_pattern = re.compile(r"(\w+)\[([^\]]+)\]")
+        for line in content.split("\n"):
+            # Skip non-edge lines
+            if "graph" in line.lower() or not line.strip() or line.strip().startswith("%"):
+                continue
+
+            # Find all node definitions in the line
+            for match in node_pattern.finditer(line):
+                node_id, node_label = match.groups()
+                node_labels[node_id] = node_label
 
         # Find all the edges in the graph
         # Look for various Mermaid edge patterns
@@ -52,11 +66,15 @@ def parse_mermaid_graph(file_path: Path) -> dict[str, list[str]]:
 
             match = edge_pattern.search(line)
             if match:
-                node1, node2 = match.groups()
+                node1_id, node2_id = match.groups()
+
+                # Use the label if available, otherwise use the ID
+                node1_label = node_labels.get(node1_id, node1_id)
+                node2_label = node_labels.get(node2_id, node2_id)
 
                 # Add edges in both directions (for undirected graphs)
-                graph[node1].append(node2)
-                graph[node2].append(node1)
+                graph[node1_label].append(node2_label)
+                graph[node2_label].append(node1_label)
 
         return dict(graph)
     except Exception as e:
@@ -135,14 +153,8 @@ def load_distance_matrix(
             # Compute the distance matrix
             computed_matrix = compute_distance_matrix(graph)
 
-            # Convert format to match room_dist_matrix format
-            # Node names in Mermaid use underscores, while room names use spaces
-            room_dist_matrix = {}
-            for key, distance in computed_matrix.items():
-                nodes = key.split("--")
-                room1 = nodes[0].replace("_", " ")
-                room2 = nodes[1].replace("_", " ")
-                room_dist_matrix[f"{room1}--{room2}"] = distance
+            # Use the computed matrix directly since we're now using node labels
+            room_dist_matrix = computed_matrix
 
             console.print(f"Successfully computed distances for {len(room_dist_matrix)} room pairs")
             return room_dist_matrix, True
@@ -166,13 +178,8 @@ def load_distance_matrix(
             # Compute the distance matrix
             computed_matrix = compute_distance_matrix(graph)
 
-            # Convert format to match room_dist_matrix format
-            room_dist_matrix = {}
-            for key, distance in computed_matrix.items():
-                nodes = key.split("--")
-                room1 = nodes[0].replace("_", " ")
-                room2 = nodes[1].replace("_", " ")
-                room_dist_matrix[f"{room1}--{room2}"] = distance
+            # Use the computed matrix directly since we're now using node labels
+            room_dist_matrix = computed_matrix
 
             console.print(
                 f"Successfully computed distances for {len(room_dist_matrix)} room pairs from derived Mermaid graph"
@@ -194,6 +201,7 @@ def generate_treasure_hunt(
     debug: bool = False,
     locations_file: Path | str | None = None,
     mermaid_graph_file: Path | str | None = None,
+    show_dist: bool = False,
 ):
     """Generates a treasure hunt with maximized distances between locations.
 
@@ -205,6 +213,7 @@ def generate_treasure_hunt(
         debug: Enable debug output
         locations_file: Path to JSON file containing locations (optional)
         mermaid_graph_file: Path to Mermaid graph file to compute distances from (optional)
+        show_dist: Whether to only display the distance between first and last locations and exit
     """
     # Set default file paths if not provided
     if locations_file is None:
@@ -230,6 +239,40 @@ def generate_treasure_hunt(
         mermaid_graph_file=mermaid_graph_file,
         debug=debug,
     )
+    if debug:
+        console.print(room_dist_matrix)
+
+    # If show_dist is enabled and both first and last are provided, show distance and exit
+    if show_dist and first is not None and last is not None:
+        if use_distance_optimization:
+            # Try direct lookup using room names
+            first_room = first["room_name"]
+            last_room = last["room_name"]
+
+            # Try direct lookup first
+            distance_key = f"{first_room}--{last_room}"
+            distance = room_dist_matrix.get(distance_key, -1)
+
+            # If not found, try the reverse order (since it's an undirected graph)
+            if distance == -1:
+                distance_key = f"{last_room}--{first_room}"
+                distance = room_dist_matrix.get(distance_key, -1)
+
+            if distance != -1:
+                print(f"Distance between {first_room} - {first['place']} and {last_room} - {last['place']}: {distance}")
+            else:
+                print(f"No path found between {first_room} and {last_room}")
+                if debug:
+                    unique_rooms = set()
+                    for k in room_dist_matrix.keys():
+                        parts = k.split("--")
+                        if len(parts) > 0:
+                            unique_rooms.add(parts[0].replace("_", " "))
+                    console.print(f"Available rooms in distance matrix: {sorted(unique_rooms)}")
+        else:
+            console.print("[yellow]Cannot calculate distance: no distance matrix available[/yellow]")
+        return
+
     locations: list[dict] = []
     for loc in file_locations:
         for place in loc["places"]:
@@ -289,7 +332,15 @@ def generate_treasure_hunt(
             for loc in available_locations:
                 # Get distance from distance matrix
                 distance_key = f"{current_location['room_name']}--{loc['room_name']}"
-                base_distance = room_dist_matrix.get(distance_key, 1)
+                base_distance = room_dist_matrix.get(distance_key, -1)
+
+                # If not found, try the reverse order (since it's an undirected graph)
+                if base_distance == -1:
+                    distance_key = f"{loc['room_name']}--{current_location['room_name']}"
+                    base_distance = room_dist_matrix.get(distance_key, 1)
+                else:
+                    # Make sure we have a valid distance (use 1 as default if not found)
+                    base_distance = max(1, base_distance)
 
                 # Add randomness to the distance calculation
                 # Higher values get more priority (we're maximizing distance)
@@ -362,7 +413,9 @@ def generate_treasure_hunt(
         rooms[treasure_location["room_name"]] = []
     rooms[treasure_location["room_name"]].append(f"!!! {treasure_location['place']} TREASURE!!!")
 
-    console.print("[green]Print the following and cut into strips. Keep the strips grouped by room for easier deployment.")
+    console.print(
+        "[green]Print the following and cut into strips. Keep the strips grouped by room for easier placement."
+    )
     # Print the treasure hunt
     for room_name in room_names:
         if room_name in rooms:
@@ -401,6 +454,13 @@ def main(
     last_place: Annotated[
         str | None, typer.Option("--last-place", "-lp", help="Place name for the final treasure location")
     ] = None,
+    show_dist: Annotated[
+        bool,
+        typer.Option(
+            "--show-dist",
+            help="Show the distance between the first and last locations and exit",
+        ),
+    ] = False,
     debug: Annotated[
         bool,
         typer.Option(
@@ -424,6 +484,7 @@ def main(
     - Mermaid graph file with --mermaid-graph to compute distances dynamically
     - Starting location with --first-room and --first-place
     - Final treasure location with --last-room and --last-place
+    - Use --show-dist to only output the distance between first and last locations
 
     Distance matrix priority order:
     1. Explicit Mermaid graph file (--mermaid-graph)
@@ -454,6 +515,7 @@ def main(
         debug=debug,
         locations_file=locations_file,
         mermaid_graph_file=mermaid_graph_file,
+        show_dist=show_dist,
     )
 
 

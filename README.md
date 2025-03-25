@@ -1,12 +1,18 @@
 # PAR Treasure Hunt
 
 ## Description
-Create a treasure hunt by generating a list of places that must be followed in order with the treasure at the end.
-One rule that should be followed is: Your child may come across notes that are not the current one in the search.
+Create a treasure hunt by generating a list of places that must be followed in order with the treasure at the end.  
+You create a list of rooms and places within those rooms and optionally a diagram describing how the rooms are connected so distance between locations can be computed.  
+Distance is optionally used to maximize the amount of running around needed to complete the hunt.  
+The program will output a list of locations that should be printed and cut into strips. You then hide the strips in the locations stated on the paper.  
+The participants start with strip #1 and go to the destination on the strip which will contain the next strip and location.  
+
+One rule that should be followed is: You may come across notes that are not the current next place in the search.
 It is important that they not look at notes they may see on their way to their next destination.
 The numbering of the notes helps ensure the one they find is the next one in the chain. Not following the chain can result in a broken hunt!
 
-The hunt is optimized to maximize distance between consecutive locations, making it more challenging and fun, with tunable randomness.
+
+Print using a monospaced font to make it easier to cut out the paper strips.
 
 The output is a list of locations you print out and cut into strips. Each strip contains the step number in the hunt, where the strip needs to be placed and the next place to go when the strip is found.
 
@@ -23,7 +29,7 @@ Example finals strip: Step #30 in the hunt, needs to be placed on / under the ke
    #30 Mom keyboard        * Mom Office - Mom chair !! X !!
 ```
 
-The list of strips on the printed paper is grouped by Room to make it easier to deploy all the notes.
+The list of strips on the printed paper is grouped by room to make it easier to place all the notes.
 
 You can specify the starting and ending locations if you dont want them randomized.
 
@@ -56,7 +62,7 @@ uv run par_treasure_hunt [OPTIONS]
 ```
 
 ### CLI Options
-- `-n`, `--num-places INTEGER`: Number of places to use [default: 20]
+- `-n`, `--num-places INTEGER`: Number of places to use [default: 150]
 - `-r`, `--randomness FLOAT`: Randomness factor (0.0-1.0) [default: 0.3]
 - `-l`, `--locations-file TEXT`: Path to JSON file with location data
 - `-m`, `--mermaid-graph TEXT`: Path to Mermaid graph file to compute distances from
@@ -189,7 +195,7 @@ The distance matrix is used to determine how far apart rooms are. It can be:
 2. Automatically computed from locations_graph.mermaid if it exists
 3. Fallback to random selection if no graph file is available
 
-The Mermaid graph format allows defining room connections as a graph:
+The Mermaid graph format allows defining room connections as a graph. The application uses the label portion of each node (the text inside the square brackets) for room names:
 ```mermaid
 graph LR
     EH[Entry Hall]<-->MH[Main Hall]
@@ -255,6 +261,10 @@ Each connection has a distance of 1, and distances between non-connected rooms a
 ```
 
 ## What's New
+- Version 0.1.1:
+  - Updated Mermaid graph parsing to use node labels instead of IDs
+  - Improved path finding with better distance calculations
+  
 - Version 0.1.0:
   - Initial release
 
